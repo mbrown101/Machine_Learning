@@ -11,9 +11,14 @@ The purpose of this study is to make fitness outcome predictions for 20 differen
 Data from http://groupware.les.inf.puc-rio.br/har was used to address the problem.  
 
 ```{r}
-download('http://groupware.les.inf.puc-rio.br/static/har/dataset-har-PUC-Rio-ugulino.zip', dest="dataset.zip", mode="wb") 
-unzip ("dataset.zip", exdir = "./")
-ex.data <- read.csv2("~/dataset-har-PUC-Rio-ugulino.csv", header=TRUE, stringsAsFactors=FALSE)
+require(RCurl)
+train.csv <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+df.train.data <- read.csv(textConnection(train.csv))
+
+test.csv <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+df.test.data <- as.data.frame(read.csv(textConnection(test.csv)))
+
+
 ```
 
 
@@ -21,5 +26,7 @@ ex.data <- read.csv2("~/dataset-har-PUC-Rio-ugulino.csv", header=TRUE, stringsAs
 ```{r, echo=FALSE}
 
 ```
+
+
 
 
