@@ -43,8 +43,9 @@ inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
 training = adData[ inTrain,]
 testing = adData[-inTrain,]
 colnames_2char <-  substr(names(training) , 1 , 2) 
-colnames_IL <- which( colnames_2char  == 'IL')
-train_IL <- testing[  , colnames_IL  ]
+colnames_IL <- which( colnames_2char  == 'IL' )
+train_IL <- training[  , c( colnames_IL )  ] 
+
 preProcess(train_IL , thresh = .80 , method= 'pca')
 
 
@@ -64,3 +65,18 @@ adData = data.frame(diagnosis,predictors)
 inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
 training = adData[ inTrain,]
 testing = adData[-inTrain,]
+colnames_2char <-  substr(names(training) , 1 , 2) 
+colnames_IL <- which( colnames_2char  == 'IL' )
+train_IL_diag <- training[  , c( colnames_IL , 1 )  ] # add col 1 for diagnosis and IL cols
+all_pred_mod <- train(diagnosis ~ . , data = train_IL_diag , method = 'glm') 
+all_pred_mod
+
+colnames_2char <-  substr(names(training) , 1 , 2) 
+colnames_IL <- which( colnames_2char  == 'IL' )
+train_IL <- training[  , c( colnames_IL)  ] 
+
+reduced_var <- preProcess(train_IL , thresh = .80 , method= 'pca')
+reduced_var_data <- predict(reduced_var , training[ , c( colnames_IL ) ] )
+reduced_pred_mod <- train(diagnosis ~ . , data = training , method = 'glm') 
+reduced_pred_mod
+
