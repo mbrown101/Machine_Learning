@@ -1,5 +1,5 @@
 ### Machine Learning
-### Q1
+### Q1 create training and test sets with about 50% of observations assigned to each
 
 library(AppliedPredictiveModeling)
 library(caret)
@@ -9,3 +9,21 @@ adData = data.frame(diagnosis,predictors) # create single DF with all data
 trainIndex = createDataPartition(diagnosis, p = 0.50,list=FALSE) # create DF 1 col, len*p rows
 training = adData[trainIndex,] # select rows in trainIndex
 testing = adData[-trainIndex,] # select rows not in trainIndex
+
+### Q2  Make a histogram and confirm the SuperPlasticizer variable is skewed. 
+# Normally you might use the log transform to try to make the data more symmetric. 
+# Why would that be a poor choice for this variable?
+
+library(AppliedPredictiveModeling)
+data(concrete)
+library(caret)
+set.seed(1000)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+hist(testing$Superplasticizer)
+hist(log10(testing$Superplasticizer)) #log base 10 of variables
+summary(log10(testing$Superplasticizer))  # results in Inf numbers
+summary(testing$Superplasticizer) # there are values == 0.  no negative values
+### answer:  There are values of zero so when you take the log() transform those values will be -Inf.
+
