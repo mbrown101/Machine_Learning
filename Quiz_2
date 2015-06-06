@@ -4,3 +4,8 @@
 library(AppliedPredictiveModeling)
 library(caret)
 data(AlzheimerDisease)
+summary(diagnosis) # note there is a DF and a factor vector
+adData = data.frame(diagnosis,predictors) # create single DF with all data
+trainIndex = createDataPartition(diagnosis, p = 0.50,list=FALSE) # create DF 1 col, len*p rows
+training = adData[trainIndex,] # select rows in trainIndex
+testing = adData[-trainIndex,] # select rows not in trainIndex
