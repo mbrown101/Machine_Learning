@@ -67,16 +67,26 @@ training = adData[ inTrain,]
 testing = adData[-inTrain,]
 colnames_2char <-  substr(names(training) , 1 , 2) 
 colnames_IL <- which( colnames_2char  == 'IL' )
+train_IL <- training[  , colnames_IL ] # predictors starting with "IL"
 train_IL_diag <- training[  , c( colnames_IL , 1 )  ] # add col 1 for diagnosis and IL cols
-all_pred_mod <- train(diagnosis ~ . , data = train_IL_diag , method = 'glm') 
-all_pred_mod
 
-colnames_2char <-  substr(names(training) , 1 , 2) 
-colnames_IL <- which( colnames_2char  == 'IL' )
-train_IL <- training[  , c( colnames_IL)  ] 
+### Model with all predictors
+all_pred_mod <- train(diagnosis ~ .,
+                      data = train_IL_diag,
+                      method = 'glm') # model
+all_pred_mod$finalModel # show model
+prediction_all <- predict(all_pred_mod , newdata = testing) # create data set with all-predictors model and testing data 
+confusionMatrix(prediction_all  , testing$diagnosis  ) # prediction , actual-data
+### accuracy of non-pca process == .6463
 
-reduced_var <- preProcess(train_IL , thresh = .80 , method= 'pca')
-reduced_var_data <- predict(reduced_var , training[ , c( colnames_IL ) ] )
-reduced_pred_mod <- train(diagnosis ~ . , data = training , method = 'glm') 
-reduced_pred_mod
+### Model with PCA as a preprocess step
 
+pca_model <- train( diagnosis ~ ., 
+                    data = train_IL_diag,
+                    method = "glm",
+                    preProcess = "pca",
+                    trControl = trainControl(preProcOptions = list(thresh = .80)))
+
+prediction_pca_mod <- predict(pca_model , newdata = testing)
+confusionMatrix(prediction_pca_mod , testing$diagnosis  )
+### accuracy of pca process == 0.7195
