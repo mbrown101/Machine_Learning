@@ -1,0 +1,18 @@
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+
+### Q1 1. Subset the data to a training set and testing set based on the Case variable in the data set. 
+# 2. Set the seed to 125 and fit a CART model with the rpart method using all predictor variables and default caret settings. 
+# 3. In the final model what would be the final model prediction for cases with the following variable values:
+#    a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2 
+#    b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100 
+#    c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100 
+#    d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2 
+
+set.seed(125)
+is.train <- which(segmentationOriginal$Case == 'Train')
+train <- segmentationOriginal[is.train  , ]
+test <- segmentationOriginal[-is.train  , ]
+
+tree <- rpart(formula, data=train, method="class")
