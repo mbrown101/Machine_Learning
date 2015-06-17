@@ -56,7 +56,7 @@ estimates
 
 ### Answer >> 2.783. It is strange because Area should be a qualitative variable - but tree is reporting the average value of Area as a numeric variable in the leaf predicted for newdata
 
-### Q3
+### Q4
 # Load the South Africa Heart Disease Data and create training and test sets 
 # Then set the seed to 13234 and fit a logistic regression model 
 # (method="glm", be sure to specify family="binomial") with Coronary Heart Disease (chd) 
@@ -67,8 +67,8 @@ estimates
 # What is the misclassification rate on the test set?
 
 library(ElemStatLearn)
+library(caret)
 data(SAheart)
-set.seed(8484)
 train = sample(1:dim(SAheart)[1],size=dim(SAheart)[1]/2,replace=F)
 trainSA = SAheart[train,]
 testSA = SAheart[-train,]
@@ -79,5 +79,18 @@ train_Prediction <- predict(health_mod , newdata = trainSA)
 test_Prediction <- predict(health_mod , newdata = testSA)
 missClass = function(values,prediction){sum(((prediction > 0.5)*1) != values)/length(values)}
 
-missClass(trainSA , train_Prediction)
-missClass(testSA , test_Prediction)
+print( c('test misclassification=' , round(missClass(testSA$chd , test_Prediction) , digits = 3) ))
+print( c('train misclassification=' , round(missClass(trainSA$chd , train_Prediction) , digits = 3) ))
+
+### Q5
+# Set the variable y to be a factor variable in both the training and test set. 
+# Then set the seed to 33833. Fit a random forest predictor relating the factor variable y to the remaining variables. 
+# Read about variable importance in random forests here: http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#ooberr 
+# The caret package uses by defualt the Gini importance. 
+# Calculate the variable importance using the varImp function in the caret package. What is the order of variable importance?
+#Load the vowel.train and vowel.test data sets:
+library(ElemStatLearn)
+v.train <- data(vowel.train)
+v. test <- data(vowel.test) 
+set.seed(33833)
+
