@@ -90,7 +90,18 @@ print( c('train misclassification=' , round(missClass(trainSA$chd , train_Predic
 # Calculate the variable importance using the varImp function in the caret package. What is the order of variable importance?
 #Load the vowel.train and vowel.test data sets:
 library(ElemStatLearn)
-v.train <- data(vowel.train)
-v. test <- data(vowel.test) 
+library(caret)
+data(vowel.train))
+data(vowel.test) 
 set.seed(33833)
+vowel.test
 
+vowel.train$y <- as.factor(vowel.train$y)
+vowel.test$y <- as.factor(vowel.test$y)
+
+mod_train <- train( y~. , data = vowel.train , method = 'rf' , importance=TRUE)
+
+final_mod_train <- mod_train$finalModel
+
+varImp(final_mod_train)
+importance(final_mod_train)
