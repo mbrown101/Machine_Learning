@@ -26,6 +26,45 @@ fancyRpartPlot(mod$finalModel)
 
 # a == PS , b == WS , c == PS , d == cant tell since it doesn't hit first fraction
 
+###  *************** Q1 Alternate Method ***********************
+
+set.seed(125)
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+options(scipen=999)
+
+#1. Subset the data to a training set and testing set based on the Case variable in the data set. 
+#2. Set the seed to 125 and fit a CART model with the rpart method using all predictor variables and default caret settings. 
+#3. In the final model what would be the final model prediction for cases with the following variable values:
+#  PS >> a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2 
+#  WS >>  b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100 
+#  PS >>  c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100 
+#  NULL  d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2 
+
+training <- segmentationOriginal[which(segmentationOriginal$Case=='Train') , ]
+testing <- segmentationOriginal[which(segmentationOriginal$Case=='Test') , ]
+set.seed(125)
+
+modFit <- train( Class ~ . , method = 'rpart' , data = training)
+
+print(modFit$finalModel)
+
+plot(modFit$finalModel , uniform = TRUE , main = 'Classification Tree')
+text(modFit$finalModel , use.n = TRUE , all = TRUE , cex = 0.6)
+
+fancyRpartPlot(modFit$finalModel)
+
+* denotes terminal node
+
+1) root 1009 373 PS (0.63032706 0.36967294)  
+  2) TotalIntenCh2< 45323.5 454  34 PS (0.92511013 0.07488987) *
+  3) TotalIntenCh2>=45323.5 555 216 WS (0.38918919 0.61081081)  
+    6) FiberWidthCh1< 9.673245 154  47 PS (0.69480519 0.30519481) *
+    7) FiberWidthCh1>=9.673245 401 109 WS (0.27182045 0.72817955) *
+
+# -----------------------------------------------------
+
 ### Q2
 
 # If K is small in a K-fold cross validation is the bias in the estimate of out-of-sample (test set) accuracy smaller or bigger? 
