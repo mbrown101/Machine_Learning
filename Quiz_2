@@ -90,3 +90,49 @@ pca_model <- train( diagnosis ~ .,
 prediction_pca_mod <- predict(pca_model , newdata = testing)
 confusionMatrix(prediction_pca_mod , testing$diagnosis  )
 ### accuracy of pca process == 0.7195
+
+###  *********************************************************
+###  An alternative approach with steps broken up a bit more
+
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+cols <- names(training)
+colNames2char <- substring(cols , 1 , 2)
+training_IL <- data.frame(training[ , which(colNames2char == 'IL')] , training$diagnosis)
+testing_IL  <- data.frame(testing[ , which(colNames2char == 'IL')] , testing$diagnosis)
+
+model1 <- train(
+                training.diagnosis ~ . , 
+                data = training_IL , 
+                method='glm')
+
+model1$finalModel # show model
+model1_prediction <- predict(model1 , newdata = testing)
+confusionMatrix(model1_prediction , testing$diagnosis)
+
+
+mod2_preProc <- preProcess(training_IL[,1:12] , method = 'pca' , thresh = .80)
+trainPreProc <- predict(mod2_preProc , training_IL[,1:12] )
+trainPreProc_Diag <- data.frame(trainPreProc , training$diagnosis)
+
+model2 <- train(
+                training.diagnosis ~ . , 
+                data = trainPreProc_Diag , 
+                method = 'glm')
+
+model2_prediction <- predict(mod2_preProc , testing_IL[,1:12])
+confusionMatrix(testing_IL[,13] , predict(model2 , model2_prediction))
+
+# Create a training data set consisting of only the predictors with variable names beginning with IL and the diagnosis. 
+# Build two predictive models, one using the predictors as they are and 
+# one using PCA with principal components explaining 80% of the variance in the predictors. 
+# Use method="glm" in the train function. 
+# What is the accuracy of each method in the test set? 
+# Which is more accurate?
