@@ -5,7 +5,7 @@ date: "June 2015"
 output: html_document
 ---
 ### Executive Summary
-The purpose of this study is to make fitness outcome predictions for 20 different test cases using machine learning techniques.  
+This study is to make fitness outcome predictions for 20 different test cases using machine learning techniques.  
 
 ### Data Conditioning
 Data from http://groupware.les.inf.puc-rio.br/har was used to address the problem.  
@@ -18,6 +18,14 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 Data 
 
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
+Class A - exactly according to the specification 
+Class B - throwing the elbows to the front 
+Class C - lifting the dumbbell only halfway 
+Class D - lowering the dumbbell only halfway 
+Class E - throwing the hips to the front 
+
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3mrNWYdbQ
 
 The training data for this project are available here: 
 
@@ -26,19 +34,7 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
 The test data are available here: 
 
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
-
-The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment. 
-
-What you should submit
-
-The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases. 
-
-1. Your submission should consist of a link to a Github repo with your R markdown and compiled HTML file describing your analysis. Please constrain the text of the writeup to < 2000 words and the number of figures to be less than 5. It will make it easier for the graders if you submit a repo with a gh-pages branch so the HTML page can be viewed online (and you always want to make it easy on graders :-).
-2. You should also apply your machine learning algorithm to the 20 test cases available in the test data above. Please submit your predictions in appropriate format to the programming assignment for automated grading. See the programming assignment for additional details. 
-
-Reproducibility 
-
-Due to security concerns with the exchange of R code, your code will not be run during the evaluation by your classmates. Please be sure that if they download the repo, they will be able to view the compiled HTML version of your analysis. 
+ 
 ************************
 
 ```{r}
@@ -92,6 +88,15 @@ df.train <- cbind(df.train.match , df.train.data[,'classe'])
 
 colnames(df.train)[53] <- 'classe'
 
+# clean up
+remove(df.test.meta)
+remove(names.df.test)
+remove(df.test.not_na)
+remove(names.test.not_na)
+remove(df.train.match)
+remove(test.csv)
+remove(train.csv)
+
 #names.train.keep <- !is.na(df.train.data[1,])  # remove meaningless columns
 #df.train.na <- df.train.data[ , names.train.keep]
 
@@ -131,7 +136,8 @@ n = length(predict.test.rpart)
 ### Solution by Boost
 
 #  Create model
-model_gbm <- train(classe~. , data = df.train , method="gmb" , verbose = FALSE )
+control <- trainControl(method="repeatedcv", number=10, repeats=3)
+model_gbm <- train(classe~. , data = df.train , method="gmb" , trControl=control ,  verbose = FALSE )
 model_gmb$finalModel
 
 #  Visualization
