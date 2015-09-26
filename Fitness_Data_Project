@@ -46,6 +46,7 @@ Due to security concerns with the exchange of R code, your code will not be run 
 library(caret)
 library(rattle)
 require(RCurl)
+retults <- NULL
 
 train.csv <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
 df.train.data <- read.csv(textConnection(train.csv))
@@ -74,16 +75,29 @@ df.test.data <- as.data.frame(read.csv(textConnection(test.csv)))
 
 ###  Issue: testing data is sparse.  Need to remove fields with no data or NA.  Dont want to model with data not availible in testing set.  THus reduce test set to good data and overlay columns back onto training data
 
-#names.test.keep <- !is.na(df.test.data[1,])  # list of data columns to keep
-#df.test <- df.test.data[,names.test.keep]  # Reformed test df with just columns with data
+names.test.not_na <- !is.na(df.test.data[1,])  # list of data columns to keep without NAs
+df.test.not_na <- df.test.data[,names.test.not_na]  # Reformed test df with just columns with data
 
+names.df.test <- names(df.test.not_na[1,which(df.test.not_na[1,]!='')]) # list of data colums not empty
+df.test.meta <- df.test.not_na[,names.df.test]
 
-names.train.keep <- !is.na(df.train.data[1,])  # remove meaningless columns
-df.train.na <- df.train.data[ , names.train.keep]
+df.test <- df.test.meta[,8:60]  # remove metadata
 
-not_null <- names(df.train.na[1,which(df.train.na[1,]!='')])  # remove columns with no data
-df.train.x <- df.train.na[,not_null] # remove row number and user as not usefull data
-df.train <- df.train.x[,c(-1, -2)]
+# Remove columns from training that are not found in pre-processed test data (except classe)
+
+train.names.keep <- is.element(names(df.train.data) , names(df.test))
+
+df.train.match <- df.train.data[,train.names.keep]
+df.train <- cbind(df.train.match , df.train.data[,'classe'])
+
+colnames(df.train)[53] <- 'classe'
+
+#names.train.keep <- !is.na(df.train.data[1,])  # remove meaningless columns
+#df.train.na <- df.train.data[ , names.train.keep]
+
+#not_null <- names(df.train.na[1,which(df.train.na[1,]!='')])  # remove columns with no data
+#df.train.x <- df.train.na[,not_null] # remove row number and user as not usefull data
+#df.train <- df.train.x[,c(-1, -2)]
 
 
 ```
@@ -92,18 +106,19 @@ df.train <- df.train.x[,c(-1, -2)]
 ### Model
 ```{r, echo=FALSE}
 
-#rpart method
+### Solution by RPART
+# create model 
 model_rpart <- train(classe~. , data = df.train , method="rpart" )
 model_rpart$finalModel
 
-# rpart visualization
+# visualization
 fancyRpartPlot(model_rpart$finalModel)
 
-# rpart perdiction
+# prediction
 predict.test.rpart <- predict(model_rpart , newdata = df.test.data )
 predict.test.rpart
 
-results <- c('rpart' , as.character(predict.test.rpart))
+results <-  c('rpart' , as.character(predict.test.rpart))
 
 #produce result files
 
@@ -113,16 +128,32 @@ n = length(predict.test.rpart)
     write.table(predict.test.rpart[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
     }
     
-# rf method
+### Solution by Boost
+
+#  Create model
+model_gbm <- train(classe~. , data = df.train , method="gmb" , verbose = FALSE )
+model_gmb$finalModel
+
+#  Visualization
+fancyRpartPlot(model_gbm$finalModel)
+
+#  Prediction 
+predict.test.gbm <- predict(model_gbm , newdata = df.test )
+predict.test.gbm
+
+results <-  rbind( results , c('Boost' , as.character(predict.test.rpart)))
+
+### Solution by Random Forest
+# Model creation
 model_rf <- train(classe~. , data = df.train , method="rf" )
 model_rf$finalModel
+
+# Visualization
 fancyRpartPlot(model_rf$finalModel)
 
-predict.test.rpart <- predict(model , newdata = df.test.data )
-predict.test.rpart
-
-predict.test.rf <- predict(model , newdata = df.test.data )
+# Prediction
+predict.test.rf <- predict(model , newdata = df.test )
 predict.test.rf
 
-results <- rbind(results , c('fr , as.character(predict.test.rf)))
+results <- rbind(results , c('Random Forest' , as.character(predict.test.rf)))
 ```
