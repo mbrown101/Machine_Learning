@@ -41,8 +41,13 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 library(caret)
 library(rattle)
+library(splines)
+library(parallel)
+library(plyr)
+
 require(RCurl)
-retults <- NULL
+
+results <- NULL
 
 train.csv <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
 df.train.data <- read.csv(textConnection(train.csv))
@@ -84,9 +89,14 @@ df.test <- df.test.meta[,8:60]  # remove metadata
 train.names.keep <- is.element(names(df.train.data) , names(df.test))
 
 df.train.match <- df.train.data[,train.names.keep]
-df.train <- cbind(df.train.match , df.train.data[,'classe'])
+df.train.all <- cbind(df.train.match , df.train.data[,'classe'])
 
-colnames(df.train)[53] <- 'classe'
+colnames(df.train.all)[53] <- 'classe'
+
+in.train <- createDataPartition(y = df.train.all$classe , p = .25 , list = FALSE)
+
+df.train <- df.train.all[in.train , ]
+df.val <- df.train.all[-in.train , ]
 
 # clean up
 remove(df.test.meta)
@@ -118,15 +128,19 @@ model_rpart$finalModel
 
 # visualization
 fancyRpartPlot(model_rpart$finalModel)
+plot(varImp(model_rpart))
 
-# prediction
+# Cross Validation
+cross_validation_results_rpart <- predict(model_rpart , newdata = df.val)
+confusionMatrix(df.val$classe , cross_validation_results_rpart)
+
+# Prediction
 predict.test.rpart <- predict(model_rpart , newdata = df.test.data )
 predict.test.rpart
 
 results <-  c('rpart' , as.character(predict.test.rpart))
 
 #produce result files
-
 n = length(predict.test.rpart)
   for(i in 1:n){
     filename = paste0("problem_id_",i,".txt")
@@ -136,18 +150,24 @@ n = length(predict.test.rpart)
 ### Solution by Boost
 
 #  Create model
-control <- trainControl(method="repeatedcv", number=10, repeats=3)
-model_gbm <- train(classe~. , data = df.train , method="gmb" , trControl=control ,  verbose = FALSE )
-model_gmb$finalModel
+control <- trainControl(method="cv", number=10)
+model_gbm <- train(classe~. , data = df.train , method="gbm" , trControl=control ,  verbose = FALSE )
+model_gbm$finalModel
 
 #  Visualization
 fancyRpartPlot(model_gbm$finalModel)
+
+
+
+# Cross Validation
+cross_validation_results_boost <- predict(model_gbm , newdata = df.val)
+confusionMatrix(df.val$classe , cross_validation_results_boost)
 
 #  Prediction 
 predict.test.gbm <- predict(model_gbm , newdata = df.test )
 predict.test.gbm
 
-results <-  rbind( results , c('Boost' , as.character(predict.test.rpart)))
+results <-  rbind( results , c('Boost' , as.character(predict.test.gbm)))
 
 ### Solution by Random Forest
 # Model creation
