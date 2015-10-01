@@ -1,0 +1,17 @@
+library(ElemStatLearn)
+library(caret) 
+data(vowel.train)
+data(vowel.test) 
+
+train.df <- as.data.frame(vowel.train)
+test.df <- as.data.frame(vowel.test)
+train.df$y <- as.factor(train.df$y)
+test.df$y <- as.factor(test.df$y)
+
+set.seed(33833)
+
+model_rf <- train( y ~ . , data = train.df , method="rf")
+model_gbm <- train( y ~ . , data = train.df , method="gbm")
+
+model_rf
+model_gbm
