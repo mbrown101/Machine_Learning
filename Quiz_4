@@ -109,6 +109,7 @@ confusionMatrix(combPred,testing$diagnosis)$overall[1]
 
 set.seed(3523)
 library(AppliedPredictiveModeling)
+library(elasticnet)
 data(concrete)
 inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
 training = concrete[ inTrain,]
@@ -116,6 +117,67 @@ testing = concrete[-inTrain,]
 
 set.seed(233) 
 
+model <- train(CompressiveStrength ~ . , data = training , model='lasso')
+model$finalModel
+plot.enet(model$finalModel, xvar = c("fraction", "penalty", "L1norm", "step"))
+plot(model$finalModel, xvar = c( "penalty"))
+no_idea <- predict.enet(model$finalModel, type='coefficients', s=model$bestTune$fraction, mode='fraction')
+
+plot.enet(no_idea$finalModel)
+
+plot.enet(model$finalModel, "penalty")
 # fit a lasso model to predict Compressive Strength. 
 # Which variable is the last coefficient to be set to zero as the penalty increases?
 # (Hint: it may be useful to look up ?plot.enet).
+
+# Answers:
+# Water
+# FineAggregate
+# Answer below == cement
+# Cement
+# BlastFurnaceSlag
+
+### Question 4
+
+data <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv")
+library(forecast)  
+library(lubridate)  # For year() function below
+dat = read.csv(textConnection(data))
+training = dat[year(dat$date) < 2012,]
+testing = dat[(year(dat$date)) > 2011,]
+tstrain = ts(training$visitsTumblr)  #time series 
+
+# Fit a model using the bats() function in the forecast package to the training time series. 
+# Then forecast this model for the remaining time points. For how many of the testing points 
+# is the true value within the 95% prediction interval bounds?
+
+plot(tstrain , xlab = 'Days' , ylab = 'Hits')
+plot(decompose(tstrain) , ylab = 'Hits')
+
+fit <- bats(tstrain) 
+
+# h = 235 periods which is the number of test points
+# level = 95 at the 95% confidence interval
+
+forecasted_hits <- as.data.frame(forecast(fit , h = 235 , level = 95))
+plot(forecasted_hits)
+
+inRange = 0
+
+for (i in 1:nrow(testing)){
+     print(c(i ,forecasted_hits[i,2] , testing[i,3] , forecasted_hits[i,3]))
+  
+     if(testing[i,3]<forecasted_hits[i,3] && testing[i,3]>forecasted_hits[i,2]){
+       inRange = inRange + 1
+         }
+    }
+inRange
+percent_inRange <- inRange / nrow(testing)
+percent_inRange
+
+#Answer == 96%
+# 96%
+# 93%
+# 98%
+# 100%
+
