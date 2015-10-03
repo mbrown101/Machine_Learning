@@ -1,4 +1,11 @@
 ### Question 1
+# Set the variable y to be a factor variable in both the training and test set. 
+# Then set the seed to 33833. 
+# Fit (1) a random forest predictor relating the factor variable y to the remaining variables and 
+# (2) a boosted predictor using the "gbm" method. 
+# Fit these both with the train() command in the caret package. 
+# What are the accuracies for the two approaches on the test data set? 
+# What is the accuracy among the test set samples where the two methods agree?
 
 library(ElemStatLearn)
 library(caret) 
@@ -16,8 +23,6 @@ set.seed(33833)
 model_rf <- train( y ~ . , data = train.df , method="rf")
 model_gbm <- train( y ~ . , data = train.df , method="gbm")
 
-
-
 model_rf
 model_gbm
 
@@ -33,33 +38,20 @@ test_concur <- test.df[concurrance,]
 test_conc.df <- predict(model_rf , newdata = test_concur)
 confusionMatrix(test_conc.df , test_concur$y)$overall[1]
 
-
 concur_frac <- length(concurrance[which(concurrance==TRUE)])/length(concurrance)
 concur_frac
 
-#Set the variable y to be a factor variable in both the training and test set. Then set the seed to 33833. Fit (1) a random forest predictor relating the factor variable y to the remaining variables and (2) a boosted predictor using the "gbm" method. Fit these both with the train() command in the caret package. 
-
-#What are the accuracies for the two approaches on the test data set? What is the accuracy among the test set samples where the two methods agree?
-
-###  Select this
+###  Answer
 #RF Accuracy = 0.6082 
 #GBM Accuracy = 0.5152 
 #Agreement Accuracy = 0.6361
 
-#RF Accuracy = 0.6082 
-#GBM Accuracy = 0.5152 
-#Agreement Accuracy = 0.5152
-
-#RF Accuracy = 0.6082 
-#GBM Accuracy = 0.5152 
-#Agreement Accuracy = 0.5325
-
-#RF Accuracy = 0.9881 
-#GBM Accuracy = 0.8371 
-#Agreement Accuracy = 0.9983
-
 
 ### Question 2
+# Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"),
+# boosted trees ("gbm") and linear discriminant analysis ("lda") model. 
+# Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? 
+# Is it better or worse than each of the individual predictions?
 
 library(caret)
 library(gbm)
@@ -90,22 +82,17 @@ combModFit <- train(diagnosis~. , data=pred.df ,  method="rf")
 combPred <- predict(combModFit,pred.df)
 confusionMatrix(combPred,testing$diagnosis)$overall[1]
 
+pred.df[,5] <- 1*(pred.df[,1]==pred.df[,4]) + 1*(pred.df[,2]==pred.df[,4]) + 1*(pred.df[,3]==pred.df[,4])
+Majority_rules <- subset(pred.df , V5 >1)
+StackedAccuracy <- nrow(Majority_rules) / nrow(pred.df)
+StackedAccuracy
 
-# Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"),
-# boosted trees ("gbm") and linear discriminant analysis ("lda") model. 
-# Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? 
-# Is it better or worse than each of the individual predictions?
-
-# Stacked Accuracy: 0.76 is better than lda but not random forests or boosting.
-
-### Select this (below) as closest
-# Stacked Accuracy: 0.80 is better than all three other methods
-# Stacked Accuracy: 0.88 is better than all three other methods
 # Stacked Accuracy: 0.80 is better than random forests and lda and the same as boosting.
 
 ### Question 3
-
-# Load the concrete data with the commands:
+# fit a lasso model to predict Compressive Strength. 
+# Which variable is the last coefficient to be set to zero as the penalty increases?
+# (Hint: it may be useful to look up ?plot.enet).
 
 set.seed(3523)
 library(ElemStatLearn)
@@ -128,18 +115,14 @@ plot.enet(no_idea$finalModel)
 
 plot.enet(model$finalModel, "penalty")
 plot.enet(model$finalModel, xvar="penalty", use.color=TRUE)
-# fit a lasso model to predict Compressive Strength. 
-# Which variable is the last coefficient to be set to zero as the penalty increases?
-# (Hint: it may be useful to look up ?plot.enet).
 
-# Answers:
-# Water
-# FineAggregate
-# Answer below == cement
-# Cement
-# BlastFurnaceSlag
+# Answer = cement
+
 
 ### Question 4
+# Fit a model using the bats() function in the forecast package to the training time series. 
+# Then forecast this model for the remaining time points. For how many of the testing points 
+# is the true value within the 95% prediction interval bounds?
 
 data <- getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv")
 library(forecast)  
@@ -148,10 +131,6 @@ dat = read.csv(textConnection(data))
 training = dat[year(dat$date) < 2012,]
 testing = dat[(year(dat$date)) > 2011,]
 tstrain = ts(training$visitsTumblr)  #time series 
-
-# Fit a model using the bats() function in the forecast package to the training time series. 
-# Then forecast this model for the remaining time points. For how many of the testing points 
-# is the true value within the 95% prediction interval bounds?
 
 plot(tstrain , xlab = 'Days' , ylab = 'Hits')
 plot(decompose(tstrain) , ylab = 'Hits')
@@ -178,14 +157,11 @@ percent_inRange <- inRange / nrow(testing)
 percent_inRange
 
 #Answer == 96%
-# 96%
-# 93%
-# 98%
-# 100%
+
 
 ### Question 5
-
-#Load the concrete data with the commands:
+# fit a support vector machine using the e1071 package to predict Compressive Strength 
+# using the default settings. Predict on the testing set. What is the RMSE?
 
 set.seed(3523)
 library(AppliedPredictiveModeling)
@@ -196,6 +172,9 @@ training = concrete[ inTrain,]
 testing = concrete[-inTrain,]
 set.seed(325)
 
+# fit a support vector machine using the e1071 package to predict Compressive Strength 
+# using the default settings. Predict on the testing set. What is the RMSE?
+
 model <- svm(CompressiveStrength ~ ., data = training)
 pred.train <- predict(model, training) #  prediction on training data
 pred.test <- predict(model, testing) #  prediction on testing data
@@ -203,12 +182,7 @@ results <- data.frame(pred.test , testing$CompressiveStrength)
 
 n = nrow(results)
 print(c('RMS Error of the predicted and Observed Strength = ' , sqrt(sum((results[,1]-results[,2])^2)/n)))
+
 ## Answer = 6.72
 
-# fit a support vector machine using the e1071 package to predict Compressive Strength 
-# using the default settings. Predict on the testing set. What is the RMSE?
 
-# 6.72
-# 11543.39
-# 107.44
-# 6.93
