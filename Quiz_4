@@ -1,5 +1,8 @@
+### Question 1
+
 library(ElemStatLearn)
 library(caret) 
+library(forecast)
 data(vowel.train)
 data(vowel.test) 
 
@@ -13,5 +16,106 @@ set.seed(33833)
 model_rf <- train( y ~ . , data = train.df , method="rf")
 model_gbm <- train( y ~ . , data = train.df , method="gbm")
 
+
+
 model_rf
 model_gbm
+
+predict_rf <- as.data.frame(predict(model_rf , newdata = test.df))
+predict_gbm <- as.data.frame(predict(model_gbm , newdata = test.df))
+
+confusionMatrix(predict_rf[,1] , test.df$y)$overall[1]
+confusionMatrix(predict_gbm[,1] , test.df$y)$overall[1]
+
+concurrance <- predict_rf[,1]==predict_gbm[,1]
+
+test_concur <- test.df[concurrance,]
+test_conc.df <- predict(model_rf , newdata = test_concur)
+confusionMatrix(test_conc.df , test_concur$y)$overall[1]
+
+
+concur_frac <- length(concurrance[which(concurrance==TRUE)])/length(concurrance)
+concur_frac
+
+#Set the variable y to be a factor variable in both the training and test set. Then set the seed to 33833. Fit (1) a random forest predictor relating the factor variable y to the remaining variables and (2) a boosted predictor using the "gbm" method. Fit these both with the train() command in the caret package. 
+
+#What are the accuracies for the two approaches on the test data set? What is the accuracy among the test set samples where the two methods agree?
+
+###  Select this
+#RF Accuracy = 0.6082 
+#GBM Accuracy = 0.5152 
+#Agreement Accuracy = 0.6361
+
+#RF Accuracy = 0.6082 
+#GBM Accuracy = 0.5152 
+#Agreement Accuracy = 0.5152
+
+#RF Accuracy = 0.6082 
+#GBM Accuracy = 0.5152 
+#Agreement Accuracy = 0.5325
+
+#RF Accuracy = 0.9881 
+#GBM Accuracy = 0.8371 
+#Agreement Accuracy = 0.9983
+
+
+### Question 2
+
+library(caret)
+library(gbm)
+set.seed(3433)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+set.seed(62433)
+
+model_rf <- train( diagnosis ~ . , data = training , method="rf")
+model_gbm <- train( diagnosis  ~ . , data = training , method="gbm")
+model_lda <- train( diagnosis  ~ . , data = training , method="lda")
+
+predict_rf <- predict(model_rf , newdata = testing)
+predict_gbm <- predict(model_gbm , newdata = testing)
+predict_lda <- predict(model_lda , newdata = testing)
+
+confusionMatrix(predict_rf , testing$diagnosis)$overall[1]
+confusionMatrix(predict_gbm , testing$diagnosis)$overall[1]
+confusionMatrix(predict_lda , testing$diagnosis)$overall[1]
+
+pred.df <- data.frame(predict_rf , predict_gbm , predict_lda , diagnosis = testing$diagnosis)
+combModFit <- train(diagnosis~. , data=pred.df ,  method="rf")
+combPred <- predict(combModFit,pred.df)
+confusionMatrix(combPred,testing$diagnosis)$overall[1]
+
+
+# Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"),
+# boosted trees ("gbm") and linear discriminant analysis ("lda") model. 
+# Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? 
+# Is it better or worse than each of the individual predictions?
+
+# Stacked Accuracy: 0.76 is better than lda but not random forests or boosting.
+
+### Select this (below) as closest
+# Stacked Accuracy: 0.80 is better than all three other methods
+# Stacked Accuracy: 0.88 is better than all three other methods
+# Stacked Accuracy: 0.80 is better than random forests and lda and the same as boosting.
+
+### Question 3
+
+# Load the concrete data with the commands:
+
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
+
+set.seed(233) 
+
+# fit a lasso model to predict Compressive Strength. 
+# Which variable is the last coefficient to be set to zero as the penalty increases?
+# (Hint: it may be useful to look up ?plot.enet).
